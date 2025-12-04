@@ -1,0 +1,164 @@
+bantu buatin aku bot discord menggunakan discord.js
+dan web admin untuk control bot discord
+config.json adalah tempat token bot, guils id, apikey dan sejenisnya
+plugin/ adalah tempat fitur botnya
+buat agar bot biar commmand / nya muncul
+
+index.js adalah system untuk menjalankan pluginnya,
+cmd.js untuk deploy commandnya agar muncul ketika di /
+
+bot discord untuk user:
+command yang pertama muncul /verify jika bisa, atau fitur  yang di disable, jadi harus /verify dulu untuk bisa gunain fitur bot lain
+
+ketika /verify inputusername tiktok
+nah bot akan memberiakn 6 code angka random 
+yang harus user salin ke bio tiktok mereka
+
+ketika sudah bot aka ngecek lewat API ini
+Params API :
+const axios = require('axios')
+axios.get('https://api.alyachan.dev/api/tiktok-stalk', {
+   params: { 
+      "username": "zettozen", 
+      "apikey": "aiscya"
+   }
+}).then(res => console.log(res.data))
+
+Hasil API : 
+{
+  "creator": "AlyaChan API - @alyachan.dev",
+  "status": true,
+  "userInfo": {
+    "id": "7479360484920263687",
+    "shortId": "",
+    "uniqueId": "zettozen",
+    "nickname": "𝐑𝖚𝖓𝖊 𝖋𝖙 ℭ𝔥𝔩𝔬𝔢𝔯𝔞",
+    "avatarLarger": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/e4dfa90cb930052d2a0c101e6842d194~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=14579&refresh_token=66d6d645&x-expires=1765026000&x-signature=NyVXCQ2k8uAk0fqD1zGp7bBKols%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=my",
+    "avatarMedium": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/e4dfa90cb930052d2a0c101e6842d194~tplv-tiktokx-cropcenter:720:720.jpeg?dr=14579&refresh_token=a16c8b7d&x-expires=1765026000&x-signature=5ZLKAnmbGHSr70Xkw05CYjQBmUQ%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=my",
+    "avatarThumb": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/e4dfa90cb930052d2a0c101e6842d194~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=73c481fc&x-expires=1765026000&x-signature=M8nYqpbMIBiDQt689msxp7JcEko%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=my",
+    "signature": "197586",
+    "createTime": 1741424462,
+    "verified": false,
+    "secUid": "MS4wLjABAAAAr18WR8j_qnyvJZlDxBqEHnrmxTNOFA-DVGjzBLMU-SBAwu_fXrWVz0YmzvTHJVHQ",
+    "ftc": false,
+    "relation": 0,
+    "openFavorite": false,
+    "commentSetting": 0,
+    "commerceUserInfo": {
+      "commerceUser": false
+    },
+
+nah ambil id, uniqueId dan niackname dan signaturenya untuk verify 6 code angka tadi, jika user sudah salin ke bio, pencet tombol verify di bawah 6 code angka yang di berikan bot
+berikan notif berhasil,
+dan bisa di cek di /profile
+nanti akan muncul nickname disocrd dah di bawahnya detail seperti username tiktok nickanme tiktok bio, balance, total submmit
+di bawahnay ada tombol withdraw, untuk menggunakan tombol withdaw harus /set-payment dropdown[paypal/dana] jika paypal input email, jika dana input nomer, ketika set payment di gunakan berulang, itu akan mengupdate data payment
+dan 1 lagi tombol check campaign, untuk melihat list campaign yang pernah di ikuti
+
+
+/campaign-active
+akan menampilkan list campaign, isinya adalah campaign yang di add admin di web admin
+yang muncul lsitnya
+contoh list campaign 1
+-Title Music
+-cover image music
+-type rate per view atau per Post
+contoh per view 1jt view per $120
+dan contoh per Post 1 post 1$ (bisa di setting juga nanti, seperti minmal berapa like)
+-dan ada progress seperti budget beraoa dan terpkaai berapa
+-campaing detail seperti max submission, max earning, max earning perpost, nanti semua bisa di atur di web admin
+-song id
+-deskripsi
+
+
+
+Cara Kerja Dashboard Admin
+•	Login Admin
+o	Admin memasukkan username dan password.
+based username zext dan pw Wangy556, nanti di dalam web bisa add admin seperti membuat username dan pw
+o	Sistem memverifikasi kredensial dan memberikan akses jika valid.
+•	Manage Campaigns
+o	Admin dapat membuat campaign baru dengan mengisi detail seperti judul, cover, budget, tipe (Per-View / Per-Post), dan aturan campaign.
+o	Admin dapat mengedit atau menghapus campaign yang sudah ada.
+o	Sistem menampilkan statistik campaign seperti total creator, total submission, dan total budget yang sudah digunakan.
+•	Manage Submissions
+o	Admin melihat daftar submission yang masuk dari para creator.
+o	Admin memverifikasi dan menyetujui submission untuk proses payout.
+o	Admin dapat mengubah status submission (Processing, Paid Out).
+•	Manage Users
+o	Admin melihat daftar user dan creator yang terdaftar.
+o	Admin dapat menangguhkan (suspend) atau mengaktifkan user.
+o	Admin mengelola koneksi akun TikTok yang terhubung dengan user.
+•	Reports & Analytics
+o	Admin mengakses dashboard ringkasan performa campaign.
+o	Admin dapat melihat grafik dan tabel analisa data untuk evaluasi campaign.
+•	Settings
+o	Admin mengelola metode pembayaran yang digunakan untuk payout.
+o	Admin mengatur konfigurasi sistem sesuai kebutuhan.
+
+
+/your-campaign
+untuk melihat campaign yang di ikuti atau di submmit
+dan memperlihatkan status campaign itu seperti 
+-Title
+-img cover
+-penghasilan
+-prgres budget campaig terpkaai
+
+jika campaign sudah end atau seelsai, atau sudah di setting seelsai saam admin, tulisannya akan proccessing untuk pengecekan admin, ketika sudah di acc tulisannya paid out dan paid out itu saldo masuk ke balance, dan bsia di cek di /profile
+
+
+/submit [input dropdown campaign yang aktif] url tiktok
+ketika submit link yang dikirim akan masuk ke api ini untuk penegcekan pencocokan id song
+
+nah ketika admin create song di web nanti juga masukin id song dan link song 
+
+paramsnya : 
+const axios = require('axios')
+axios.get('https://api.alyachan.dev/api/tiktok', {
+   params: { 
+      "url": "https://www.tiktok.com/@vidiosports/video/7459028033760955656?is_from_webapp=1&sender_device=pc", 
+      "apikey": "aiscya"
+   }
+}).then(res => console.log(res.data))
+
+Hasil API tiktok
+{
+  "creator": "AlyaChan API - @alyachan.dev",
+  "status": true,
+  "title": "Name: Mission: Yozakura Family #mangarecommendation #manga ",
+  "taken_at": "Senin, 17 November 2025 pukul 03.00.00",
+  "size_nowm": "0 B",
+  "size_nowmhd": "0 B",
+  "size_wm": "0 B",
+  "duration": 0,
+  "author": {
+    "id": "7504657759439799312",
+    "nickname": "SAIGOAI",
+    "fullname": "saigoai5",
+    "avatar": "https://cdn.alyachan.website/auth/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiOWJhMmE4MWMyOTIxMjQ4MzIzMTc2N2Q5ZjIzZWU4YTM6ODc0MGY1OTEzZjU2ZDUyYzExYTFlZjlmNDBlMTcxMDEzODM1ZTMxMzgxYjE3ZTE5YTljMjBjNWRmM2YxMTZlYTg0ZjQ3ZWUzN2M2ZTY5MWE2OTU4ODllZTI1ZmEzYmE1MzAyZGM1ZGQ2ZGViMDFjM2ZkYjFkMGE0ZTAyNGJlNGI5YTYwM2FmMDNmNTlkYmFmY2UxOTBhM2UyMTk0NjY1MCIsImlhdCI6MTc2NDg1ODE3MCwiZXhwIjoxNzY0ODU4MjMwfQ.N5Q0B0poLqSn66DCKGS-eLfyPlImqVhSpn-nOztv628"
+  },
+  "stats": {
+    "comment": 95,
+    "likes": 30848,
+    "download": 96,
+    "views": 387437,
+    "share": 233,
+    "collection": 9152
+  },
+  "music_info": {
+    "id": "7557281760355093264",
+    "title": "original sound - gihooobang",
+    "author": "Gihooobang",
+    "album": "No albums",
+    "url": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/7557281756160789265.mp3"
+  },
+
+  nahh ketika submit akan mencocokan username, id, dan tiktok yang wajib menggunaka song yang udah di set di campaign
+  jadi seperti jika di campaign sama admin di set 7557281760355093264 maka samakan juga di api ini, jika sesuai maka berhasil di submit
+  jadi tidak sembarang submit video orang, jadi harus sesuai pada akun sendiiri dan video sendiri
+
+
+  databasenya menggunakan database.json dulu sementara,
+  buat serapi mungkin yak, untnuk web admin gunakan tailwind cdn dan buat tema modern, dan jangan sampe ada error dan harus detail apa yang aku jelaskan tadi
+  

@@ -1,7 +1,7 @@
 {
   "name": "project-ruen-tes",
   "version": "1.0.0",
-  "description": "",
+  "description": "nyoba",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,6 +18,10 @@
   },
   "homepage": "https://github.com/callmezext/rune-project#readme",
   "dependencies": {
-    "discord.js": "^14.25.1"
+    "axios": "^1.13.2",
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "discord.js": "^14.25.1",
+    "express": "^5.2.1"
   }
 }

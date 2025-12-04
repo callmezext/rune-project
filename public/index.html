@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bot Admin Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"
+    ></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              dark: "#0f172a",
+              darker: "#020617",
+              card: "#1e293b",
+              primary: "#6366f1", // Indigo
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+      body {
+        background-color: #0f172a;
+        color: white;
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+  <body x-data="appData()" x-init="initApp()">
+    <div
+      x-show="!isLoggedIn"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-darker transition-opacity"
+    >
+      <div
+        class="bg-card p-8 rounded-xl shadow-2xl w-96 border border-gray-700"
+      >
+        <h2 class="text-2xl font-bold mb-6 text-center text-primary">
+          Admin Login
+        </h2>
+        <form @submit.prevent="login">
+          <div class="mb-4">
+            <label class="block text-sm mb-2 text-gray-400">Username</label>
+            <input
+              type="text"
+              x-model="loginForm.username"
+              class="w-full bg-dark border border-gray-600 rounded p-2 focus:border-primary focus:outline-none transition"
+            />
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm mb-2 text-gray-400">Password</label>
+            <input
+              type="password"
+              x-model="loginForm.password"
+              class="w-full bg-dark border border-gray-600 rounded p-2 focus:border-primary focus:outline-none transition"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-primary hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded transition"
+          >
+            Login
+          </button>
+          <p
+            x-show="loginError"
+            class="text-red-500 text-sm mt-3 text-center"
+            x-text="loginError"
+          ></p>
+        </form>
+      </div>
+    </div>
+
+    <div x-show="isLoggedIn" x-cloak class="flex h-screen overflow-hidden">
+      <aside class="w-64 bg-card border-r border-gray-700 flex flex-col">
+        <div
+          class="p-6 text-2xl font-bold text-primary flex items-center gap-2"
+        >
+          <i class="ph ph-robot"></i> BotManager
+        </div>
+        <nav class="flex-1 px-4 space-y-2">
+          <a
+            href="#"
+            @click.prevent="activeTab = 'dashboard'"
+            :class="activeTab === 'dashboard' ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-700'"
+            class="block py-2.5 px-4 rounded transition flex items-center gap-2"
+          >
+            <i class="ph ph-squares-four"></i> Dashboard
+          </a>
+          <a
+            href="#"
+            @click.prevent="activeTab = 'campaigns'"
+            :class="activeTab === 'campaigns' ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-700'"
+            class="block py-2.5 px-4 rounded transition flex items-center gap-2"
+          >
+            <i class="ph ph-megaphone"></i> Campaigns
+          </a>
+          <a
+            href="#"
+            @click.prevent="activeTab = 'submissions'"
+            :class="activeTab === 'submissions' ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-700'"
+            class="block py-2.5 px-4 rounded transition flex items-center gap-2"
+          >
+            <i class="ph ph-list-checks"></i> Submissions
+            <span
+              x-show="pendingCount > 0"
+              class="ml-auto bg-red-500 text-xs px-2 py-0.5 rounded-full"
+              x-text="pendingCount"
+            ></span>
+          </a>
+          <a
+            href="#"
+            @click.prevent="activeTab = 'users'"
+            :class="activeTab === 'users' ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-700'"
+            class="block py-2.5 px-4 rounded transition flex items-center gap-2"
+          >
+            <i class="ph ph-users"></i> Users
+          </a>
+        </nav>
+        <div class="p-4 border-t border-gray-700">
+          <button
+            @click="logout"
+            class="w-full flex items-center gap-2 text-red-400 hover:text-red-300"
+          >
+            <i class="ph ph-sign-out"></i> Logout
+          </button>
+        </div>
+      </aside>
+
+      <main class="flex-1 overflow-y-auto bg-dark p-8">
+        <div x-show="activeTab === 'dashboard'">
+          <h2 class="text-3xl font-bold mb-6">Overview</h2>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-card p-6 rounded-xl border border-gray-700">
+              <div class="text-gray-400 text-sm">Total Users</div>
+              <div class="text-3xl font-bold" x-text="users.length">0</div>
+            </div>
+            <div class="bg-card p-6 rounded-xl border border-gray-700">
+              <div class="text-gray-400 text-sm">Active Campaigns</div>
+              <div
+                class="text-3xl font-bold text-green-400"
+                x-text="campaigns.filter(c => c.status === 'active').length"
+              >
+                0
+              </div>
+            </div>
+            <div class="bg-card p-6 rounded-xl border border-gray-700">
+              <div class="text-gray-400 text-sm">Pending Submissions</div>
+              <div
+                class="text-3xl font-bold text-yellow-400"
+                x-text="submissions.filter(s => s.status === 'processing').length"
+              >
+                0
+              </div>
+            </div>
+            <div class="bg-card p-6 rounded-xl border border-gray-700">
+              <div class="text-gray-400 text-sm">Total Paid Out</div>
+              <div class="text-3xl font-bold text-blue-400">
+                $<span x-text="totalPaidOut">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div x-show="activeTab === 'campaigns'">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold">Manage Campaigns</h2>
+            <button
+              @click="showCreateModal = true"
+              class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded flex items-center gap-2"
+            >
+              <i class="ph ph-plus"></i> New Campaign
+            </button>
+          </div>
+
+          <div class="grid gap-6">
+            <template x-for="camp in campaigns" :key="camp.id">
+              <div
+                class="bg-card p-6 rounded-xl border border-gray-700 flex flex-col md:flex-row gap-4"
+              >
+                <img
+                  :src="camp.coverImage"
+                  class="w-32 h-32 object-cover rounded-lg bg-gray-800"
+                  alt="Cover"
+                />
+                <div class="flex-1">
+                  <div class="flex justify-between items-start">
+                    <h3 class="text-xl font-bold" x-text="camp.title"></h3>
+                    <span
+                      :class="camp.status === 'active' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'"
+                      class="px-2 py-1 text-xs rounded uppercase"
+                      x-text="camp.status"
+                    ></span>
+                  </div>
+                  <p
+                    class="text-gray-400 text-sm mt-1"
+                    x-text="camp.description"
+                  ></p>
+                  <div
+                    class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm"
+                  >
+                    <div>
+                      <span class="text-gray-500">Song ID:</span> <br />
+                      <span class="font-mono" x-text="camp.songId"></span>
+                    </div>
+                    <div>
+                      <span class="text-gray-500">Rate:</span> <br />
+                      $<span x-text="camp.rate"></span> /
+                      <span x-text="camp.type"></span>
+                    </div>
+                    <div>
+                      <span class="text-gray-500">Budget:</span> <br />
+                      $<span x-text="camp.usedBudget"></span> / $<span
+                        x-text="camp.budget"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div x-show="activeTab === 'submissions'">
+          <h2 class="text-3xl font-bold mb-6">Submissions Review</h2>
+          <div
+            class="overflow-x-auto bg-card rounded-xl border border-gray-700"
+          >
+            <table class="w-full text-left text-sm">
+              <thead class="bg-gray-800 text-gray-400 uppercase">
+                <tr>
+                  <th class="px-6 py-4">User</th>
+                  <th class="px-6 py-4">Campaign</th>
+                  <th class="px-6 py-4">Video Stats</th>
+                  <th class="px-6 py-4">Link</th>
+                  <th class="px-6 py-4">Status</th>
+                  <th class="px-6 py-4">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-700">
+                <template x-for="sub in submissions" :key="sub.id">
+                  <tr class="hover:bg-gray-800 transition">
+                    <td class="px-6 py-4" x-text="getUserName(sub.userId)"></td>
+                    <td
+                      class="px-6 py-4"
+                      x-text="getCampName(sub.campaignId)"
+                    ></td>
+                    <td class="px-6 py-4">
+                      Views: <span x-text="sub.statsAtSubmit.views"></span
+                      ><br />
+                      Likes: <span x-text="sub.statsAtSubmit.likes"></span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <a
+                        :href="sub.tiktokUrl"
+                        target="_blank"
+                        class="text-primary hover:underline flex items-center gap-1"
+                      >
+                        View <i class="ph ph-arrow-square-out"></i>
+                      </a>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span
+                        :class="{
+                                            'text-yellow-400': sub.status === 'processing',
+                                            'text-green-400': sub.status === 'Paid Out',
+                                            'text-red-400': sub.status === 'rejected'
+                                        }"
+                        class="capitalize"
+                        x-text="sub.status"
+                      ></span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div
+                        x-show="sub.status === 'processing'"
+                        class="flex gap-2"
+                      >
+                        <button
+                          @click="updateStatus(sub.id, 'Paid Out')"
+                          class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs"
+                        >
+                          Pay
+                        </button>
+                        <button
+                          @click="updateStatus(sub.id, 'rejected')"
+                          class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div x-show="activeTab === 'users'">
+          <h2 class="text-3xl font-bold mb-6">Registered Users</h2>
+          <div
+            class="overflow-x-auto bg-card rounded-xl border border-gray-700"
+          >
+            <table class="w-full text-left text-sm">
+              <thead class="bg-gray-800 text-gray-400 uppercase">
+                <tr>
+                  <th class="px-6 py-4">Discord ID</th>
+                  <th class="px-6 py-4">TikTok Name</th>
+                  <th class="px-6 py-4">Balance</th>
+                  <th class="px-6 py-4">Payment</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-700">
+                <template x-for="u in users" :key="u.discordId">
+                  <tr class="hover:bg-gray-800">
+                    <td class="px-6 py-4 font-mono" x-text="u.discordId"></td>
+                    <td
+                      class="px-6 py-4"
+                      x-text="u.tiktokNickname + ' (@' + u.tiktokUsername + ')'"
+                    ></td>
+                    <td class="px-6 py-4 font-bold text-green-400">
+                      $<span x-text="u.balance"></span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span
+                        x-text="u.payment ? u.payment.type + ' (' + u.payment.account + ')' : 'Not Set'"
+                      ></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      <div
+        x-show="showCreateModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm"
+        x-cloak
+      >
+        <div
+          class="bg-card w-full max-w-lg p-6 rounded-xl border border-gray-600"
+        >
+          <h3 class="text-xl font-bold mb-4">Create New Campaign</h3>
+          <form @submit.prevent="createCampaign">
+            <div class="grid gap-3 mb-4">
+              <input
+                x-model="newCamp.title"
+                placeholder="Campaign Title"
+                required
+                class="w-full bg-dark border border-gray-600 p-2 rounded"
+              />
+              <textarea
+                x-model="newCamp.description"
+                placeholder="Description & Rules"
+                required
+                class="w-full bg-dark border border-gray-600 p-2 rounded"
+              ></textarea>
+              <input
+                x-model="newCamp.coverImage"
+                placeholder="Cover Image URL"
+                class="w-full bg-dark border border-gray-600 p-2 rounded"
+              />
+              <input
+                x-model="newCamp.songId"
+                placeholder="Required Song ID (TikTok Music ID)"
+                required
+                class="w-full bg-dark border border-gray-600 p-2 rounded"
+              />
+              <div class="grid grid-cols-2 gap-2">
+                <input
+                  x-model="newCamp.budget"
+                  type="number"
+                  placeholder="Total Budget ($)"
+                  required
+                  class="w-full bg-dark border border-gray-600 p-2 rounded"
+                />
+                <input
+                  x-model="newCamp.rate"
+                  type="number"
+                  step="0.01"
+                  placeholder="Rate ($)"
+                  required
+                  class="w-full bg-dark border border-gray-600 p-2 rounded"
+                />
+              </div>
+              <select
+                x-model="newCamp.type"
+                class="w-full bg-dark border border-gray-600 p-2 rounded"
+              >
+                <option value="per_view">Per View</option>
+                <option value="per_post">Per Post</option>
+              </select>
+            </div>
+            <div class="flex justify-end gap-2">
+              <button
+                type="button"
+                @click="showCreateModal = false"
+                class="px-4 py-2 text-gray-400 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="bg-primary hover:bg-indigo-500 text-white px-4 py-2 rounded"
+              >
+                Create
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function appData() {
+        return {
+          isLoggedIn: false,
+          loginForm: { username: "", password: "" },
+          loginError: "",
+          activeTab: "dashboard",
+          showCreateModal: false,
+
+          // Data Store
+          users: [],
+          campaigns: [],
+          submissions: [],
+          newCamp: {
+            title: "",
+            description: "",
+            coverImage: "",
+            songId: "",
+            budget: "",
+            rate: "",
+            type: "per_view",
+          },
+
+          async initApp() {
+            const token = localStorage.getItem("admin_token");
+            if (token) {
+              this.isLoggedIn = true;
+              await this.fetchData();
+              // Auto refresh data every 30s
+              setInterval(() => this.fetchData(), 30000);
+            }
+          },
+
+          async login() {
+            try {
+              const res = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(this.loginForm),
+              });
+              const data = await res.json();
+              if (data.success) {
+                localStorage.setItem("admin_token", data.token);
+                this.isLoggedIn = true;
+                this.fetchData();
+              } else {
+                this.loginError = data.message;
+              }
+            } catch (e) {
+              this.loginError = "Server error";
+            }
+          },
+
+          logout() {
+            localStorage.removeItem("admin_token");
+            this.isLoggedIn = false;
+            this.loginForm = { username: "", password: "" };
+          },
+
+          async fetchData() {
+            try {
+              const res = await fetch("/api/data");
+              const data = await res.json();
+              this.users = data.users;
+              this.campaigns = data.campaigns.reverse(); // Newest first
+              this.submissions = data.submissions.reverse();
+            } catch (e) {
+              console.error("Error fetching data");
+            }
+          },
+
+          async createCampaign() {
+            try {
+              const res = await fetch("/api/campaigns", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(this.newCamp),
+              });
+              const data = await res.json();
+              if (data.success) {
+                this.showCreateModal = false;
+                this.newCamp = {
+                  title: "",
+                  description: "",
+                  coverImage: "",
+                  songId: "",
+                  budget: "",
+                  rate: "",
+                  type: "per_view",
+                };
+                await this.fetchData();
+              }
+            } catch (e) {
+              alert("Failed to create campaign");
+            }
+          },
+
+          async updateStatus(id, status) {
+            if (!confirm(`Are you sure you want to mark this as ${status}?`))
+              return;
+            try {
+              const res = await fetch("/api/submission/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id, status }),
+              });
+              if (res.ok) await this.fetchData();
+            } catch (e) {
+              alert("Error updating status");
+            }
+          },
+
+          // Helpers
+          get pendingCount() {
+            return this.submissions.filter((s) => s.status === "processing")
+              .length;
+          },
+          get totalPaidOut() {
+            // Logic simple: anggap balance user yang sudah bertambah adalah yg sudah paid out
+            return (
+              this.submissions.filter((s) => s.status === "Paid Out").length *
+              10
+            ); // Dummy calc, realnya bisa dari reduce submission payoutAmount
+          },
+          getUserName(id) {
+            const u = this.users.find((x) => x.discordId === id);
+            return u ? u.tiktokNickname : "Unknown";
+          },
+          getCampName(id) {
+            const c = this.campaigns.find((x) => x.id === id);
+            return c ? c.title : "Deleted Campaign";
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
